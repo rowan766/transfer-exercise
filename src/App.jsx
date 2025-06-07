@@ -1,6 +1,7 @@
 import { Web3ReactProvider } from '@web3-react/core'
 import { connectors } from './utils/connectors'
 import WalletConnect from './components/WalletConnect'
+import TransferCom from './components/TransferCom'
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
             Web3 React 应用
           </h1>
           <WalletConnect />
+          <TransferCom></TransferCom>
         </div>
       </div>
     </Web3ReactProvider>
