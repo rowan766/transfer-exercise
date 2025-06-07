@@ -1,38 +1,52 @@
 import { useWeb3React } from '@web3-react/core'
 import { metaMask } from '../utils/connectors'
 import { useEffect, useState } from 'react'
-import { formatEther } from 'ethers'
+import { getBalance, getNetworkInfo } from '../utils/providerUtils'
 
 function WalletConnect() {
   const { connector, account, isActive, provider, chainId } = useWeb3React()
   const [balance, setBalance] = useState(null)
   const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (isActive && provider && account) {
-      provider.getBalance(account)
-        .then((balance) => {
-          setBalance(formatEther(balance))
-        })
-        .catch((err) => {
+    const fetchBalance = async () => {
+      if (isActive && provider && account) {
+        try {
+          setLoading(true)
+          setError(null)
+          
+          const balanceFormatted = await getBalance(provider, account)
+          setBalance(balanceFormatted)
+        } catch (err) {
           console.error('获取余额失败:', err)
-          setError('获取余额失败')
-        })
+          setError('获取余额失败: ' + err.message)
+        } finally {
+          setLoading(false)
+        }
+      }
     }
+
+    fetchBalance()
   }, [isActive, provider, account])
 
   const connectWallet = async () => {
     try {
       setError(null)
+      setLoading(true)
       await metaMask.activate()
     } catch (error) {
       console.error('连接钱包失败:', error)
-      setError('连接钱包失败，请确保已安装 MetaMask')
+      setError('连接钱包失败，请确保已安装 MetaMask: ' + error.message)
+    } finally {
+      setLoading(false)
     }
   }
 
   const disconnect = () => {
     try {
+      setBalance(null)
+      setError(null)
       if (metaMask?.deactivate) {
         metaMask.deactivate()
       } else {
@@ -40,30 +54,49 @@ function WalletConnect() {
       }
     } catch (error) {
       console.error('断开连接失败:', error)
+      setError('断开连接失败: ' + error.message)
     }
   }
 
   const getNetworkName = (chainId) => {
-    switch (chainId) {
-      case 1: return '以太坊主网'
-      case 5: return 'Goerli 测试网'
-      case 11155111: return 'Sepolia 测试网'
-      case 137: return 'Polygon'
-      default: return `网络 ${chainId}`
+    const networkInfo = getNetworkInfo(chainId)
+    return networkInfo.name
+  }
+
+  // 重试获取余额
+  const retryBalance = async () => {
+    if (isActive && provider && account) {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        const balanceFormatted = await getBalance(provider, account)
+        setBalance(balanceFormatted)
+      } catch (err) {
+        console.error('重试获取余额失败:', err)
+        setError('获取余额失败，请尝试切换网络或重新连接钱包')
+      } finally {
+        setLoading(false)
+      }
     }
   }
 
-  if (error) {
+  if (error && !isActive) {
     return (
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
         <div className="text-red-600 text-center mb-4">
-          <p>{error}</p>
+          <h3 className="font-semibold mb-2">连接错误</h3>
+          <p className="text-sm">{error}</p>
         </div>
         <button
-          onClick={() => setError(null)}
-          className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded transition duration-200"
+          onClick={() => {
+            setError(null)
+            connectWallet()
+          }}
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition duration-200"
+          disabled={loading}
         >
-          重试
+          {loading ? '连接中...' : '重新连接'}
         </button>
       </div>
     )
@@ -73,23 +106,40 @@ function WalletConnect() {
     return (
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-semibold mb-4 text-green-600">钱包已连接</h2>
-        <div className="space-y-3">
-          <div>
-            <span className="text-gray-600">网络:</span>
-            <p className="font-semibold">{getNetworkName(chainId)}</p>
+        <div className="space-y-4">
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <div className="text-sm text-gray-600 mb-1">网络</div>
+            <div className="font-semibold">{getNetworkName(chainId)}</div>
           </div>
-          <div>
-            <span className="text-gray-600">地址:</span>
-            <p className="font-mono text-sm break-all bg-gray-100 p-2 rounded">
-              {account}
-            </p>
+          
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <div className="text-sm text-gray-600 mb-1">地址：{account}</div>
           </div>
-          {balance !== null && (
-            <div>
-              <span className="text-gray-600">余额:</span>
-              <p className="font-semibold">{parseFloat(balance).toFixed(4)} ETH</p>
-            </div>
-          )}
+          
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <div className="text-sm text-gray-600 mb-1">余额</div>
+            {loading ? (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2"></div>
+                <span className="text-sm">加载中...</span>
+              </div>
+            ) : error ? (
+              <div>
+                <div className="text-red-600 text-sm mb-2">{error}</div>
+                <button
+                  onClick={retryBalance}
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                >
+                  重试获取余额
+                </button>
+              </div>
+            ) : balance !== null ? (
+              <div className="font-semibold">{parseFloat(balance).toFixed(4)} ETH</div>
+            ) : (
+              <div className="text-gray-500 text-sm">无法获取余额</div>
+            )}
+          </div>
+          
           <button
             onClick={disconnect}
             className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition duration-200"
@@ -108,13 +158,26 @@ function WalletConnect() {
         <button
           onClick={connectWallet}
           className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded transition duration-200 flex items-center justify-center"
+          disabled={loading}
         >
-          <img 
-            src="https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg" 
-            alt="MetaMask" 
-            className="w-6 h-6 mr-2"
-          />
-          连接 MetaMask
+          {loading ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+              连接中...
+            </>
+          ) : (
+            <>
+              <img 
+                src="https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg" 
+                alt="MetaMask" 
+                className="w-6 h-6 mr-2"
+                onError={(e) => {
+                  e.target.style.display = 'none'
+                }}
+              />
+              连接 MetaMask
+            </>
+          )}
         </button>
         <p className="text-sm text-gray-500 text-center">
           请确保已安装 MetaMask 浏览器扩展
