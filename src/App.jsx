@@ -4,6 +4,8 @@ import WalletConnect from './components/WalletConnect';
 import TransferCom from './components/TransferCom';
 import HexTransformStr from './components/HexTransformStr';
 
+import LogInfo from './pages/LogInfo'
+
 function App() {
   return (
     <Web3ReactProvider connectors={connectors}>
@@ -13,6 +15,7 @@ function App() {
           <WalletConnect />
           <TransferCom></TransferCom>
           <HexTransformStr></HexTransformStr>
+          <LogInfo></LogInfo>
         </div>
       </div>
     </Web3ReactProvider>
