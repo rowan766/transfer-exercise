@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useWeb3React } from '@web3-react/core';
 import { ethers } from 'ethers';
 
+// 合约地址：0xbf0d761c2fdd017bbd5eca14878f1acd3d22b55e
+
 function TransferCom() {
   const { account, provider } = useWeb3React();
   const [formData, setFormData] = useState({

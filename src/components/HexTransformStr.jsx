@@ -68,27 +68,27 @@ function HexTransformStr(props) {
         <p className="text-gray-700 text-lg font-bold">{'十六进制转字符串'}</p>
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <input type="text" name="hexStr" value={formData.hexStr} onChange={handleInputChange} placeholder="0x开头" />
-        <buton className="px-4 py-2  font-normal bg-blue-600 text-white ml-1 mr-1" onClick={handleTransfer}>
+        <button className="px-4 py-2  font-normal bg-blue-600 text-white ml-1 mr-1" onClick={handleTransfer}>
           转换
-        </buton>
+        </button>
         <input type="text" name="strStr" value={formData.strStr} onChange={handleInputChange} />
 
-        <buton className="px-4 py-2  font-normal bg-red-600 text-white ml-1 mr-1" onClick={handleClear}>
+        <button className="px-4 py-2  font-normal bg-red-600 text-white ml-1 mr-1" onClick={handleClear}>
           清除
-        </buton>
+        </button>
 
         <p className="text-gray-700 text-lg font-bold mt-5">{'字符串转十六进制'}</p>
 
         {error2 && <p className="text-red-500 text-sm">{error}</p>}
         <input type="text" name="strStr" value={formData2.strStr} onChange={handleInputChange2} />
-        <buton className="px-4 py-2  font-normal bg-blue-600 text-white ml-1 mr-1" onClick={handleTransfer2}>
+        <button className="px-4 py-2  font-normal bg-blue-600 text-white ml-1 mr-1" onClick={handleTransfer2}>
           转换
-        </buton>
+        </button>
         <input type="text" name="hexStr" value={formData2.hexStr} onChange={handleInputChange2} />
 
-        <buton className="px-4 py-2  font-normal bg-red-600 text-white ml-1 mr-1" onClick={handleClear2}>
+        <button className="px-4 py-2  font-normal bg-red-600 text-white ml-1 mr-1" onClick={handleClear2}>
           清除
-        </buton>
+        </button>
       </div>
     </>
   );
