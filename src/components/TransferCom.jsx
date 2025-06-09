@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { useWeb3React } from '@web3-react/core';
 import { ethers } from 'ethers';
 
-// 合约地址：0xbf0d761c2fdd017bbd5eca14878f1acd3d22b55e
+// 合约地址：0xa371986086b59d7995286daa36662a1b58610be7
+
+// thegrg: c664e06ffcc7f7e098d67262148dec6f
 
 function TransferCom() {
   const { account, provider } = useWeb3React();
@@ -51,6 +53,13 @@ function TransferCom() {
       await tx.wait();
       setSuccess('交易已完成');
       setIsLoading(false);
+      setError('');
+      setFormData({
+        toAddress: '',
+        amount: '',
+        tokenType: 'ETH',
+        inputData: ''
+      })
     } catch (error) {
       console.log(error);
     }
