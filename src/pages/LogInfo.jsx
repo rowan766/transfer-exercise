@@ -254,7 +254,7 @@ const TransactionLogs = () => {
                   查询中...
                 </div>
               ) : (
-                '查询所有日志'
+                '查询合约日志'
               )}
             </button>
 
